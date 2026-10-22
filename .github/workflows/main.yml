@@ -1,0 +1,46 @@
+name: Build Flutter APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+          
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.6'
+          channel: 'stable'
+          cache: true
+          
+      - name: Build APK
+        run: |
+          PUBSPEC_PATH=$(find . -name "pubspec.yaml" | head -n 1)
+          PROJECT_DIR=$(dirname "$PUBSPEC_PATH")
+          cd "$PROJECT_DIR"
+          
+          flutter pub get
+          
+          # حذف NDK (برای جلوگیری از خطای دانلود در سرور)
+          find android -name "build.gradle*" -exec sed -i '/ndkVersion/d' {} +
+          find android -name "build.gradle*" -exec sed -i '/ndkPath/d' {} +
+          
+          # 🚨 ساخت با حافظه بیشتر
+          export GRADLE_OPTS="-Xmx4g -Dorg.gradle.daemon=false"
+          flutter build apk --release --android-skip-build-dependency-validation
+          
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: "**/build/app/outputs/flutter-apk/app-release.apk"
