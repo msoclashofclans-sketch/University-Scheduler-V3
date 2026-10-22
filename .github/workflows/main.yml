@@ -31,11 +31,10 @@ jobs:
           
           flutter pub get
           
-          # حذف NDK (برای جلوگیری از خطای دانلود در سرور)
+          # 🚨 حذف خطوط NDK از تمام فایل‌های گریدل
           find android -name "build.gradle*" -exec sed -i '/ndkVersion/d' {} +
-          find android -name "build.gradle*" -exec sed -i '/ndkPath/d' {} +
           
-          # 🚨 ساخت با حافظه بیشتر
+          # ساخت با حافظه بیشتر
           export GRADLE_OPTS="-Xmx4g -Dorg.gradle.daemon=false"
           flutter build apk --release --android-skip-build-dependency-validation
           
