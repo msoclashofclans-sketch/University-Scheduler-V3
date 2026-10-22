@@ -43,7 +43,12 @@ class HomeScreen extends StatelessWidget {
                       SliverPadding(
                         padding: const EdgeInsets.all(16),
                         sliver: SliverGrid(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 1.15),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 1.15,
+                          ),
                           delegate: SliverChildListDelegate([
                             _menuCard(context, title: 'برنامه کلاس‌ها', subtitle: 'نمای هفتگی', icon: Icons.calendar_month_rounded, gradient: AppConstants.primaryGradient, onTap: () => Navigator.push(context, PageTransitions.slideFromRight(const ScheduleScreen()))),
                             _menuCard(context, title: 'کلاس‌ها', subtitle: '${provider.totalClassrooms} کلاس', icon: Icons.meeting_room_rounded, gradient: AppConstants.successGradient, onTap: () => Navigator.push(context, PageTransitions.slideFromRight(const ClassScreen()))),
@@ -67,8 +72,10 @@ class HomeScreen extends StatelessWidget {
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () => _pickFiles(context),
-          backgroundColor: AppConstants.primaryColor, foregroundColor: Colors.white,
-          icon: const Icon(Icons.upload_file_rounded), label: const Text('ورود اطلاعات'),
+          backgroundColor: AppConstants.primaryColor,
+          foregroundColor: Colors.white,
+          icon: const Icon(Icons.upload_file_rounded),
+          label: const Text('ورود اطلاعات'),
         ).animate().scale(delay: 600.ms, duration: 500.ms),
       ),
     );
@@ -78,22 +85,45 @@ class HomeScreen extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
-      decoration: const BoxDecoration(gradient: AppConstants.primaryGradient, borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32), bottomRight: Radius.circular(32))),
+      decoration: const BoxDecoration(
+        gradient: AppConstants.primaryGradient,
+        borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32), bottomRight: Radius.circular(32)),
+      ),
       child: Column(
         children: [
           Row(
             children: [
-              Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(16)), child: const Icon(Icons.school_rounded, color: Colors.white, size: 28)),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(16)),
+                child: const Icon(Icons.school_rounded, color: Colors.white, size: 28),
+              ),
               const SizedBox(width: 12),
-              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('سامانه مدیریت کلاس‌ها', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text('حضور و غیاب اساتید', style: TextStyle(color: Colors.white70, fontSize: 13))])),
-              IconButton(onPressed: themeProvider.toggleTheme, icon: Icon(themeProvider.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: Colors.white)),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('سامانه مدیریت کلاس‌ها', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text('حضور و غیاب اساتید', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: themeProvider.toggleTheme,
+                icon: Icon(themeProvider.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded, color: Colors.white),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           Container(
-            width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 8),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-            child: const Text('طراحی و توسعه: مسعود خسروی', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'طراحی و توسعه: مسعود خسروی',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -105,96 +135,131 @@ class HomeScreen extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
         children: [
-          Row(children: [
-            Expanded(child: StatCard(label: 'کلاس‌ها', value: provider.totalClassrooms.toString(), icon: Icons.meeting_room_rounded, color: AppConstants.primaryColor)),
-            const SizedBox(width: 12),
-            Expanded(child: StatCard(label: 'دروس', value: provider.totalCourses.toString(), icon: Icons.book_rounded, color: AppConstants.accentColor)),
-          ]),
+          Row(
+            children: [
+              Expanded(child: StatCard(label: 'کلاس‌ها', value: provider.totalClassrooms.toString(), icon: Icons.meeting_room_rounded, color: AppConstants.primaryColor)),
+              const SizedBox(width: 12),
+              Expanded(child: StatCard(label: 'دروس', value: provider.totalCourses.toString(), icon: Icons.book_rounded, color: AppConstants.accentColor)),
+            ],
+          ),
           const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: StatCard(label: 'حاضر', value: provider.presentCount.toString(), icon: Icons.check_circle_rounded, color: AppConstants.successColor)),
-            const SizedBox(width: 12),
-            Expanded(child: StatCard(label: 'غایب', value: provider.absentCount.toString(), icon: Icons.cancel_rounded, color: AppConstants.dangerColor)),
-          ]),
+          Row(
+            children: [
+              Expanded(child: StatCard(label: 'حاضر', value: provider.presentCount.toString(), icon: Icons.check_circle_rounded, color: AppConstants.successColor)),
+              const SizedBox(width: 12),
+              Expanded(child: StatCard(label: 'غایب', value: provider.absentCount.toString(), icon: Icons.cancel_rounded, color: AppConstants.dangerColor)),
+            ],
+          ),
         ],
       ),
     );
   }
 
   Widget _menuCard(BuildContext context, {required String title, required String subtitle, required IconData icon, required Gradient gradient, required VoidCallback onTap}) {
-    return GradientCard(gradient: gradient, onTap: onTap, child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Icon(icon, color: Colors.white, size: 34), Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)), const SizedBox(height: 4), Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 11))])]));
+    return GradientCard(
+      gradient: gradient,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Icon(icon, color: Colors.white, size: 34),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSnack(BuildContext context, String msg, Color color) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: color, behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), margin: const EdgeInsets.all(16)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   Future<void> _pickFiles(BuildContext context) async {
-  final provider = context.read<AppProvider>();
-  var status = await Permission.manageExternalStorage.status;
-  if (!status.isGranted) {
-    status = await Permission.manageExternalStorage.request();
+    final provider = context.read<AppProvider>();
+    var status = await Permission.manageExternalStorage.status;
     if (!status.isGranted) {
-      var storageStatus = await Permission.storage.status;
-      if (!storageStatus.isGranted) storageStatus = await Permission.storage.request();
-      if (!storageStatus.isGranted) {
-        if (context.mounted) {
-          _showSnack(context, 'برای خواندن فایل‌ها، دسترسی به حافظه لازم است.', AppConstants.dangerColor);
-          await openAppSettings();
+      status = await Permission.manageExternalStorage.request();
+      if (!status.isGranted) {
+        var storageStatus = await Permission.storage.status;
+        if (!storageStatus.isGranted) storageStatus = await Permission.storage.request();
+        if (!storageStatus.isGranted) {
+          if (context.mounted) {
+            _showSnack(context, 'برای خواندن فایل‌ها، دسترسی به حافظه لازم است.', AppConstants.dangerColor);
+            await openAppSettings();
+          }
+          return;
         }
+      }
+    }
+
+    try {
+      final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xlsx', 'xls'], allowMultiple: true);
+      if (result == null || result.files.isEmpty) return;
+      File? classFile;
+      File? scheduleFile;
+
+      for (final f in result.files) {
+        if (f.path == null) continue;
+        final name = f.name.toLowerCase();
+        if (name.contains('allprog')) {
+          scheduleFile = File(f.path!);
+        } else if (name.contains('class')) {
+          classFile = File(f.path!);
+        } else {
+          if (classFile == null) {
+            classFile = File(f.path!);
+          } else if (scheduleFile == null) {
+            scheduleFile = File(f.path!);
+          }
+        }
+      }
+
+      if (classFile == null || scheduleFile == null) {
+        if (context.mounted) _showSnack(context, 'لطفاً فایل اول را با نام class و فایل دوم را با نام allprog انتخاب کنید.', AppConstants.dangerColor);
         return;
       }
-    }
-  }
 
-  try {
-    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xlsx', 'xls'], allowMultiple: true);
-    if (result == null || result.files.isEmpty) return;
-    File? classFile;
-    File? scheduleFile;
-
-    for (final f in result.files) {
-      if (f.path == null) continue;
-      final name = f.name.toLowerCase();
-      if (name.contains('allprog')) scheduleFile = File(f.path!);
-      else if (name.contains('class')) classFile = File(f.path!);
-      else {
-        if (classFile == null) classFile = File(f.path!);
-        else if (scheduleFile == null) scheduleFile = File(f.path!);
-      }
-    }
-
-    if (classFile == null || scheduleFile == null) {
-      if (context.mounted) _showSnack(context, 'لطفاً فایل اول را با نام class و فایل دوم را با نام allprog انتخاب کنید.', AppConstants.dangerColor);
-      return;
-    }
-
-    await provider.importFiles(classFile: classFile, scheduleFile: scheduleFile);
-    if (context.mounted) _showSnack(context, provider.statusMessage, AppConstants.successColor);
-  } catch (e, stacktrace) {
-    // 🚨 اگر خطایی رخ داد، جزئیات کامل را در یک پنجره نشان می‌دهیم
-    if (context.mounted) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('خطای دقیق برنامه'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('متن خطا:', style: TextStyle(fontWeight: FontWeight.bold)),
-                SelectableText(e.toString(), style: const TextStyle(fontFamily: 'monospace', fontSize: 12, color: Colors.red)),
-                const SizedBox(height: 16),
-                const Text('محل خطا:', style: TextStyle(fontWeight: FontWeight.bold)),
-                SelectableText(stacktrace.toString(), style: const TextStyle(fontFamily: 'monospace', fontSize: 10)),
-              ],
+      await provider.importFiles(classFile: classFile, scheduleFile: scheduleFile);
+      if (context.mounted) _showSnack(context, provider.statusMessage, AppConstants.successColor);
+    } catch (e, stacktrace) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('خطای دقیق برنامه'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('متن خطا:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  SelectableText(e.toString(), style: const TextStyle(fontFamily: 'monospace', fontSize: 12, color: Colors.red)),
+                  const SizedBox(height: 16),
+                  const Text('محل خطا:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  SelectableText(stacktrace.toString(), style: const TextStyle(fontFamily: 'monospace', fontSize: 10)),
+                ],
+              ),
             ),
+            actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('باشه'))],
           ),
-          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('باشه'))],
-        ),
-      );
+        );
+      }
     }
   }
 }
