@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:excel/excel.dart';
+import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import '../models/classroom.dart';
 import '../models/course_record.dart';
 import '../utils/constants.dart';
@@ -20,10 +20,10 @@ class ExcelReaderService {
 
   Future<List<Classroom>> readClassrooms(File file) async {
     final bytes = file.readAsBytesSync();
-    final excel = Excel.decodeBytes(bytes);
+    final spreadsheet = SpreadsheetDecoder.decodeBytes(bytes);
     final classrooms = <Classroom>[];
-    if (excel.tables.isEmpty) return classrooms;
-    final sheet = excel.tables.values.first;
+    if (spreadsheet.tables.isEmpty) return classrooms;
+    final sheet = spreadsheet.tables.values.first;
 
     for (final row in sheet.rows) {
       if (row.isEmpty) continue;
@@ -45,17 +45,19 @@ class ExcelReaderService {
 
   Future<List<CourseRecord>> readCourseRecords(File file) async {
     final bytes = file.readAsBytesSync();
-    final excel = Excel.decodeBytes(bytes);
+    final spreadsheet = SpreadsheetDecoder.decodeBytes(bytes);
     final records = <CourseRecord>[];
-    if (excel.tables.isEmpty) return records;
-    final sheet = excel.tables.values.first;
+    if (spreadsheet.tables.isEmpty) return records;
+    final sheet = spreadsheet.tables.values.first;
 
     for (int rowIndex = 0; rowIndex < sheet.maxRows; rowIndex++) {
       try {
-        final row = sheet.row(rowIndex);
+        final row = sheet.rows[rowIndex];
         if (row.length <= colField) continue;
+        
         final courseName = _cellValue(row[colCourseName]) ?? '';
         final scheduleText = _cellValue(row[colSchedule]) ?? '';
+        
         if (courseName.isEmpty || scheduleText.isEmpty) continue;
         if (courseName == 'نام درس' || courseName == 'درس') continue;
 
@@ -126,5 +128,10 @@ class ExcelReaderService {
   String _normalize(String value) => value.replaceAll('ي', 'ی').replaceAll('ك', 'ک').replaceAll('\u200c', ' ').replaceAll('\u200d', '').replaceAll('\u200e', '').replaceAll('\u200f', '').replaceAll('\xa0', ' ').replaceAll('\r', ' ').replaceAll('\n', ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
   String _normalizeClassName(String value) => value.replaceAll('ي', 'ی').replaceAll('ك', 'ک').replaceAll('خيام', 'خیام').replaceAll('خوارزمي', 'خوارزمی').replaceAll('ابوريحان', 'ابوریحان').replaceAll('فارابي', 'فارابی').replaceAll(RegExp(r'\([^)]*\)'), '').replaceAll(RegExp(r'\s+'), ' ').trim();
   bool _looksLikeClassName(String value) { final normalized = _normalizeClassName(value); const prefixes = ['خوارزمی', 'ابوریحان', 'خیام', 'فارابی', 'کارگاه کامپیوتر', 'کارگاه پلیمر', 'آزمایشگاه']; return prefixes.any(normalized.startsWith); }
-  String? _cellValue(dynamic cell) { if (cell == null) return null; try { if (cell is TextCellValue) return cell.value.text; if (cell is IntCellValue) return cell.value.toString(); if (cell is DoubleCellValue) return cell.value.toString(); return cell.toString(); } catch (e) { return null; } }
+  
+  // 🚨 این تابع اکنون با کتابخانه جدید کاملاً امن است
+  String? _cellValue(dynamic cell) {
+    if (cell == null) return null;
+    return cell.toString().trim();
+  }
 }
