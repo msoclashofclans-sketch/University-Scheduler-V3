@@ -131,58 +131,70 @@ class HomeScreen extends StatelessWidget {
   }
 
   Future<void> _pickFiles(BuildContext context) async {
-    final provider = context.read<AppProvider>();
-    var status = await Permission.manageExternalStorage.status;
+  final provider = context.read<AppProvider>();
+  var status = await Permission.manageExternalStorage.status;
+  if (!status.isGranted) {
+    status = await Permission.manageExternalStorage.request();
     if (!status.isGranted) {
-      status = await Permission.manageExternalStorage.request();
-      if (!status.isGranted) {
-        var storageStatus = await Permission.storage.status;
-        if (!storageStatus.isGranted) storageStatus = await Permission.storage.request();
-        if (!storageStatus.isGranted) {
-          if (context.mounted) {
-            _showSnack(context, 'برای خواندن فایل‌ها، دسترسی به حافظه لازم است.', AppConstants.dangerColor);
-            await openAppSettings();
-          }
-          return;
+      var storageStatus = await Permission.storage.status;
+      if (!storageStatus.isGranted) storageStatus = await Permission.storage.request();
+      if (!storageStatus.isGranted) {
+        if (context.mounted) {
+          _showSnack(context, 'برای خواندن فایل‌ها، دسترسی به حافظه لازم است.', AppConstants.dangerColor);
+          await openAppSettings();
         }
+        return;
+      }
+    }
+  }
+
+  try {
+    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xlsx', 'xls'], allowMultiple: true);
+    if (result == null || result.files.isEmpty) return;
+    File? classFile;
+    File? scheduleFile;
+
+    for (final f in result.files) {
+      if (f.path == null) continue;
+      final name = f.name.toLowerCase();
+      if (name.contains('allprog')) scheduleFile = File(f.path!);
+      else if (name.contains('class')) classFile = File(f.path!);
+      else {
+        if (classFile == null) classFile = File(f.path!);
+        else if (scheduleFile == null) scheduleFile = File(f.path!);
       }
     }
 
-    try {
-      final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xlsx', 'xls'], allowMultiple: true);
-      if (result == null || result.files.isEmpty) return;
-      File? classFile;
-      File? scheduleFile;
+    if (classFile == null || scheduleFile == null) {
+      if (context.mounted) _showSnack(context, 'لطفاً فایل اول را با نام class و فایل دوم را با نام allprog انتخاب کنید.', AppConstants.dangerColor);
+      return;
+    }
 
-      for (final f in result.files) {
-        if (f.path == null) continue;
-        final name = f.name.toLowerCase();
-        if (name.contains('allprog')) scheduleFile = File(f.path!);
-        else if (name.contains('class')) classFile = File(f.path!);
-        else {
-          if (classFile == null) classFile = File(f.path!);
-          else if (scheduleFile == null) scheduleFile = File(f.path!);
-        }
-      }
-
-      if (classFile == null || scheduleFile == null) {
-        if (context.mounted) _showSnack(context, 'لطفاً فایل اول را با نام class و فایل دوم را با نام allprog انتخاب کنید.', AppConstants.dangerColor);
-        return;
-      }
-
-      await provider.importFiles(classFile: classFile, scheduleFile: scheduleFile);
-      if (context.mounted) _showSnack(context, provider.statusMessage, AppConstants.successColor);
-    } catch (e) {
-      if (context.mounted) {
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('خطای دقیق برنامه'),
-            content: SingleChildScrollView(child: SelectableText(e.toString(), style: const TextStyle(fontFamily: 'monospace', fontSize: 12))),
-            actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('باشه'))],
+    await provider.importFiles(classFile: classFile, scheduleFile: scheduleFile);
+    if (context.mounted) _showSnack(context, provider.statusMessage, AppConstants.successColor);
+  } catch (e, stacktrace) {
+    // 🚨 اگر خطایی رخ داد، جزئیات کامل را در یک پنجره نشان می‌دهیم
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('خطای دقیق برنامه'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('متن خطا:', style: TextStyle(fontWeight: FontWeight.bold)),
+                SelectableText(e.toString(), style: const TextStyle(fontFamily: 'monospace', fontSize: 12, color: Colors.red)),
+                const SizedBox(height: 16),
+                const Text('محل خطا:', style: TextStyle(fontWeight: FontWeight.bold)),
+                SelectableText(stacktrace.toString(), style: const TextStyle(fontFamily: 'monospace', fontSize: 10)),
+              ],
+            ),
           ),
-        );
-      }
+          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('باشه'))],
+        ),
+      );
     }
   }
 }
