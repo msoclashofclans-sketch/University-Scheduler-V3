@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/classroom.dart';
 import '../models/course_record.dart';
 import '../models/attendance_record.dart';
+import '../models/makeup_record.dart';
 import '../services/database_service.dart';
 import '../services/excel_reader_service.dart';
 import '../utils/constants.dart';
@@ -14,6 +15,7 @@ class AppProvider extends ChangeNotifier {
   List<Classroom> _classrooms = [];
   List<CourseRecord> _courseRecords = [];
   Map<String, AttendanceRecord> _attendanceMap = {};
+  List<MakeupRecord> _makeupRecords = [];
 
   bool _isLoading = false;
   String _statusMessage = '';
@@ -22,6 +24,7 @@ class AppProvider extends ChangeNotifier {
   List<Classroom> get classrooms => _classrooms;
   List<CourseRecord> get courseRecords => _courseRecords;
   Map<String, AttendanceRecord> get attendanceMap => _attendanceMap;
+  List<MakeupRecord> get makeupRecords => _makeupRecords;
   bool get isLoading => _isLoading;
   String get statusMessage => _statusMessage;
   double get loadingProgress => _loadingProgress;
@@ -41,6 +44,7 @@ class AppProvider extends ChangeNotifier {
       _courseRecords = await _db.getAllCourseRecords();
       final attList = await _db.getAllAttendance();
       _attendanceMap = {for (final a in attList) a.recordKey: a};
+      _makeupRecords = await _db.getAllMakeupRecords();
       _setStatus('آماده');
     } catch (e) {
       _setStatus('خطا در بارگذاری: $e');
@@ -89,6 +93,21 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> addMakeupRecord(CourseRecord record, String day, String time) async {
+    final newRecord = MakeupRecord(
+      recordKey: record.uniqueKey,
+      day: day,
+      timeSlot: time,
+    );
+    await _db.insertMakeupRecord(newRecord);
+    _makeupRecords.add(newRecord);
+    notifyListeners();
+  }
+
+  List<MakeupRecord> getMakeupRecordsFor(CourseRecord record) {
+    return _makeupRecords.where((m) => m.recordKey == record.uniqueKey).toList();
+  }
+
   AttendanceRecord? getAttendance(CourseRecord record) => _attendanceMap[record.uniqueKey];
 
   List<CourseRecord> getByDayAndTime(String day, String timeSlot) => _courseRecords.where((r) => r.day == day && r.timeSlot == timeSlot).toList();
@@ -123,7 +142,7 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> clearAll() async {
     await _db.deleteAllData();
-    _classrooms = []; _courseRecords = []; _attendanceMap = {};
+    _classrooms = []; _courseRecords = []; _attendanceMap = {}; _makeupRecords = [];
     _setStatus('همه داده‌ها پاک شد');
     notifyListeners();
   }
