@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:io';
 import '../utils/constants.dart';
 import 'splash_screen.dart';
 
@@ -12,50 +14,72 @@ class LicenseScreen extends StatefulWidget {
 
 class _LicenseScreenState extends State<LicenseScreen> {
   final TextEditingController _controller = TextEditingController();
+  String _deviceId = 'در حال دریافت...';
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _getDeviceId();
+  }
+
+  // 🚨 دریافت کد یکتای دستگاه
+  Future<void> _getDeviceId() async {
+    final deviceInfo = DeviceInfoPlugin();
+    try {
+      String id = '';
+      if (Platform.isAndroid) {
+        final androidInfo = await deviceInfo.androidInfo;
+        // استفاده از id (Android 8+) یا fingerprint برای دستگاه‌های قدیمی‌تر
+        id = androidInfo.id; 
+        if (id.isEmpty) id = androidInfo.fingerprint;
+      } else if (Platform.isIOS) {
+        final iosInfo = await deviceInfo.iosInfo;
+        id = iosInfo.identifierForVendor ?? '';
+      }
+      
+      // کوتاه کردن کد برای راحتی کار
+      final shortId = id.length > 8 ? id.substring(0, 8).toUpperCase() : id.toUpperCase();
+      
+      setState(() {
+        _deviceId = shortId;
+      });
+    } catch (e) {
+      setState(() {
+        _deviceId = 'ERROR-0000';
+      });
+    }
+  }
+
   Future<void> _activateLicense() async {
-    final code = _controller.text.trim();
+    final inputCode = _controller.text.trim();
 
-    if (!code.startsWith('masoud@')) {
-      _showError('لایسنس نامعتبر است. فرمت صحیح: masoud@تاریخ');
+    if (inputCode.isEmpty) {
+      _showError('لطفاً کد لایسنس را وارد کنید.');
       return;
     }
 
-    final datePart = code.replaceAll('masoud@', '');
-    
-    if (datePart.length != 8) {
-      _showError('تاریخ باید ۸ رقم باشد (مثلاً 14050801).');
-      return;
-    }
-
-    final licenseYear = int.tryParse(datePart.substring(0, 4));
-    final licenseMonth = int.tryParse(datePart.substring(4, 6));
-    final licenseDay = int.tryParse(datePart.substring(6, 8));
-
-    if (licenseYear == null || licenseMonth == null || licenseDay == null) {
-      _showError('تاریخ وارد شده معتبر نیست.');
-      return;
-    }
-
+    // 🚨 فرمت لایسنس: کد دستگاه + یک خط تیره + تاریخ امروز (مثلاً A1B2C3D4-20261023)
     final now = DateTime.now();
-    final currentYear = now.year - 621; 
-    final currentMonth = now.month;
-    final currentDay = now.day;
+    final todayDate = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    final expectedLicense = '$_deviceId-$todayDate';
 
-    if (licenseYear < currentYear ||
-        (licenseYear == currentYear && licenseMonth < currentMonth) ||
-        (licenseYear == currentYear && licenseMonth == currentMonth && licenseDay < currentDay)) {
-      _showError('تاریخ لایسنس منقضی شده است.');
+    // بررسی اینکه آیا کد وارد شده با فرمول ما همخوانی دارد یا نه
+    if (inputCode != expectedLicense) {
+      _showError('کد لایسنس نامعتبر است. لطفاً کد را با دقت وارد کنید.');
       return;
     }
 
+    // اگر درست بود، ثبت می‌کنیم
     setState(() => _isLoading = true);
     final prefs = await SharedPreferences.getInstance();
     
+    // محاسبه تاریخ انقضا: ۱۲۰ روز بعد از امروز
     final expireDate = now.add(const Duration(days: 120));
+    
     await prefs.setString('expire_date', expireDate.toIso8601String());
-    await prefs.setString('license_code', code);
+    await prefs.setString('license_code', inputCode);
+    await prefs.setString('device_id', _deviceId);
 
     if (mounted) {
       Navigator.pushReplacement(
@@ -79,7 +103,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
       child: Scaffold(
         appBar: AppBar(title: const Text('فعال‌سازی لایسنس'), backgroundColor: AppConstants.primaryColor, foregroundColor: Colors.white),
         body: Center(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -88,13 +112,37 @@ class _LicenseScreenState extends State<LicenseScreen> {
                 const SizedBox(height: 20),
                 const Text('اعتبار نسخه شما به پایان رسیده است.', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
-                const Text('برای ادامه استفاده، کد لایسنس دریافتی را وارد کنید.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                const Text('این کد شناسایی گوشی شماست. آن را برای مدیر برنامه ارسال کنید تا لایسنس را دریافت کنید:', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 16),
+                
+                // 🚨 نمایش کد دستگاه در یک کادر زیبا
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppConstants.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppConstants.primaryColor, width: 2),
+                  ),
+                  child: SelectableText(
+                    _deviceId,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                      color: AppConstants.primaryColor,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 30),
+                
+                const Text('کد لایسنس دریافتی را در کادر زیر وارد کنید:', style: TextStyle(fontSize: 14)),
+                const SizedBox(height: 10),
+                
                 TextField(
                   controller: _controller,
                   decoration: InputDecoration(
                     labelText: 'کد لایسنس',
-                    hintText: 'masoud@14050801',
+                    hintText: 'مثال: A1B2C3D4-20261023',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     prefixIcon: const Icon(Icons.key),
                   ),
