@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../utils/constants.dart';
 import 'splash_screen.dart';
 
@@ -16,59 +14,50 @@ class _LicenseScreenState extends State<LicenseScreen> {
   final TextEditingController _controller = TextEditingController();
   bool _isLoading = false;
 
-  // 🚨 تبدیل تاریخ هجری شمسی به میلادی
-  DateTime? _parsePersianDate(String persianDate) {
-    try {
-      // فرض بر این است که فرمت تاریخ 8 رقمی است: yyyymmdd
-      // برای سادگی، سال را به میلادی تبدیل نمی‌کنیم، بلکه یک اعتبارسنجی ساده انجام می‌دهیم
-      if (persianDate.length != 8) return null;
-      
-      final year = int.parse(persianDate.substring(0, 4));
-      final month = int.parse(persianDate.substring(4, 6));
-      final day = int.parse(persianDate.substring(6, 8));
-      
-      // تبدیل تقریبی هجری شمسی به میلادی
-      final gregorianYear = year + 621;
-      return DateTime(gregorianYear, month, day);
-    } catch (e) {
-      return null;
-    }
-  }
-
   Future<void> _activateLicense() async {
     final code = _controller.text.trim();
 
-    // ۱. بررسی فرمت لایسنس
     if (!code.startsWith('masoud@')) {
       _showError('لایسنس نامعتبر است. فرمت صحیح: masoud@تاریخ');
       return;
     }
 
     final datePart = code.replaceAll('masoud@', '');
-    final licenseDate = _parsePersianDate(datePart);
-
-    if (licenseDate == null) {
-      _showError('تاریخ وارد شده نامعتبر است.');
+    
+    if (datePart.length != 8) {
+      _showError('تاریخ باید ۸ رقم باشد (مثلاً 14050801).');
       return;
     }
 
-    // ۲. بررسی اینکه تاریخ لایسنس از امروز جلوتر باشد
-    if (licenseDate.isBefore(DateTime.now())) {
+    final licenseYear = int.tryParse(datePart.substring(0, 4));
+    final licenseMonth = int.tryParse(datePart.substring(4, 6));
+    final licenseDay = int.tryParse(datePart.substring(6, 8));
+
+    if (licenseYear == null || licenseMonth == null || licenseDay == null) {
+      _showError('تاریخ وارد شده معتبر نیست.');
+      return;
+    }
+
+    final now = DateTime.now();
+    final currentYear = now.year - 621; 
+    final currentMonth = now.month;
+    final currentDay = now.day;
+
+    if (licenseYear < currentYear ||
+        (licenseYear == currentYear && licenseMonth < currentMonth) ||
+        (licenseYear == currentYear && licenseMonth == currentMonth && licenseDay < currentDay)) {
       _showError('تاریخ لایسنس منقضی شده است.');
       return;
     }
 
-    // ۳. ثبت لایسنس جدید (۴ ماه اعتبار)
     setState(() => _isLoading = true);
     final prefs = await SharedPreferences.getInstance();
     
-    // تاریخ انقضای جدید: ۴ ماه (۱۲۰ روز) بعد از تاریخ وارد شده در لایسنس
-    final newExpireDate = licenseDate.add(const Duration(days: 120));
-    await prefs.setString('expire_date', newExpireDate.toIso8601String());
+    final expireDate = now.add(const Duration(days: 120));
+    await prefs.setString('expire_date', expireDate.toIso8601String());
     await prefs.setString('license_code', code);
 
     if (mounted) {
-      // هدایت به برنامه اصلی
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const SplashScreen()),
@@ -77,6 +66,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
   }
 
   void _showError(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(msg), backgroundColor: AppConstants.dangerColor),
     );
