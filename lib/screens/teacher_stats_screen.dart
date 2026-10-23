@@ -23,6 +23,7 @@ class TeacherStatsScreen extends StatelessWidget {
               itemBuilder: (context, i) {
                 final t = teachers[i];
                 final records = provider.getByTeacher(t);
+                
                 int totalT = 0, totalP = 0, totalW = 0;
                 for (var r in records) {
                   totalT += r.unitsTheoretical;
@@ -36,12 +37,12 @@ class TeacherStatsScreen extends StatelessWidget {
                   child: ExpansionTile(
                     leading: CircleAvatar(backgroundColor: AppConstants.primaryColor, child: Text(t[0], style: const TextStyle(color: Colors.white))),
                     title: Text(t, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('کل واحدها: $totalAll (تئوری: $totalT | عملی: $totalP | کارگاهی: $totalW)'),
+                    subtitle: Text('کل واحدها: $totalAll\n(تئوری: $totalT | عملی: $totalP | کارگاهی: $totalW)', style: const TextStyle(fontSize: 12)),
                     children: records.map((r) {
                       return ListTile(
                         dense: true,
                         leading: const Icon(Icons.book, color: AppConstants.accentColor),
-                        title: Text(r.courseName),
+                        title: Text(r.courseName, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text('تئوری: ${r.unitsTheoretical} | عملی: ${r.unitsPractical} | کارگاهی: ${r.unitsWorkshop}'),
                       );
                     }).toList(),
