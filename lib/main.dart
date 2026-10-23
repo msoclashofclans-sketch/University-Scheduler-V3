@@ -30,7 +30,7 @@ class UniversitySchedulerApp extends StatelessWidget {
     }
 
     final expireDate = DateTime.parse(expireDateStr);
-    return DateTime.now().isBefore(expireDate);
+    return DateTime.now().isBefore(expireDate); // آیا هنوز اعتبار دارد؟
   }
 
   @override
@@ -64,7 +64,7 @@ class UniversitySchedulerApp extends StatelessWidget {
                 if (snapshot.hasData && snapshot.data == true) {
                   return const SplashScreen(); // لایسنس معتبر است
                 }
-                return const LicenseScreen(); // لایسنس ندارد
+                return const LicenseScreen(); // نیاز به لایسنس دارد
               },
             ),
           );
