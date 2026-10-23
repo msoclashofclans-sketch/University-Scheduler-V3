@@ -2,20 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'providers/app_provider.dart';
 import 'providers/theme_provider.dart';
+import 'screens/license_screen.dart';
 import 'screens/splash_screen.dart';
 import 'utils/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
+  );
   runApp(const UniversitySchedulerApp());
 }
 
 class UniversitySchedulerApp extends StatelessWidget {
   const UniversitySchedulerApp({super.key});
+
+  // 🚨 تابع بررسی اعتبار لایسنس
+  Future<bool> _checkLicense() async {
+    final prefs = await SharedPreferences.getInstance();
+    final expireDateStr = prefs.getString('expire_date');
+
+    if (expireDateStr == null) {
+      return false; // اولین بار است، لایسنس ندارد
+    }
+
+    final expireDate = DateTime.parse(expireDateStr);
+    return DateTime.now().isBefore(expireDate); // آیا هنوز اعتبار دارد؟
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +56,19 @@ class UniversitySchedulerApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            home: const SplashScreen(),
+            // 🚨 بررسی لایسنس قبل از ورود به برنامه
+            home: FutureBuilder<bool>(
+              future: _checkLicense(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                }
+                if (snapshot.hasData && snapshot.data == true) {
+                  return const SplashScreen(); // لایسنس معتبر است
+                }
+                return const LicenseScreen(); // لایسنس ندارد
+              },
+            ),
           );
         },
       ),
