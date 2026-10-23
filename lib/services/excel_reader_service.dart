@@ -5,18 +5,22 @@ import '../models/course_record.dart';
 import '../utils/constants.dart';
 
 class ExcelReaderService {
-  static const int colStudentCount = 1;
-  static const int colSchedule = 5;
-  static const int colTeacherFamily = 6;
-  static const int colTeacherName = 7;
-  static const int colUnitsTheoretical = 12;
-  static const int colUnitsPractical = 13;
-  static const int colUnitsWorkshop = 14;
-  static const int colGroup = 15;
-  static const int colCourseName = 16;
-  static const int colCourseCode = 17;
-  static const int colSemester = 18;
-  static const int colField = 19;
+  // ستون‌های دقیق بر اساس فایل پایتون
+  static const int colStudentCount = 1; // B
+  static const int colSchedule = 5;     // F
+  static const int colTeacherFamily = 6; // G
+  static const int colTeacherName = 7;   // H
+  
+  // 🚨 اصلاح قطعی ستون‌ها
+  static const int colUnitsWorkshop = 12;    // M (کارگاهی)
+  static const int colUnitsPractical = 13;   // N (عملی)
+  static const int colUnitsTheoretical = 14; // O (تئوری)
+
+  static const int colGroup = 15;       // P
+  static const int colCourseName = 16;  // Q
+  static const int colCourseCode = 17;  // R
+  static const int colSemester = 18;    // S
+  static const int colField = 19;       // T
 
   Future<List<Classroom>> readClassrooms(File file) async {
     final bytes = file.readAsBytesSync();
@@ -66,9 +70,10 @@ class ExcelReaderService {
         final teacher = '$teacherName $teacherFamily'.trim();
         final studentCount = _cellValue(row[colStudentCount]) ?? '';
         
-        final unitsT = int.tryParse(_cellValue(row[colUnitsTheoretical]) ?? '0') ?? 0;
-        final unitsP = int.tryParse(_cellValue(row[colUnitsPractical]) ?? '0') ?? 0;
+        // 🚨 خواندن صحیح واحدها از ستون‌های M, N, O
         final unitsW = int.tryParse(_cellValue(row[colUnitsWorkshop]) ?? '0') ?? 0;
+        final unitsP = int.tryParse(_cellValue(row[colUnitsPractical]) ?? '0') ?? 0;
+        final unitsT = int.tryParse(_cellValue(row[colUnitsTheoretical]) ?? '0') ?? 0;
 
         final group = _cellValue(row[colGroup]) ?? '';
         final courseCode = _cellValue(row[colCourseCode]) ?? '';
@@ -129,7 +134,6 @@ class ExcelReaderService {
   String _normalizeClassName(String value) => value.replaceAll('ي', 'ی').replaceAll('ك', 'ک').replaceAll('خيام', 'خیام').replaceAll('خوارزمي', 'خوارزمی').replaceAll('ابوريحان', 'ابوریحان').replaceAll('فارابي', 'فارابی').replaceAll(RegExp(r'\([^)]*\)'), '').replaceAll(RegExp(r'\s+'), ' ').trim();
   bool _looksLikeClassName(String value) { final normalized = _normalizeClassName(value); const prefixes = ['خوارزمی', 'ابوریحان', 'خیام', 'فارابی', 'کارگاه کامپیوتر', 'کارگاه پلیمر', 'آزمایشگاه']; return prefixes.any(normalized.startsWith); }
   
-  // 🚨 این تابع اکنون با کتابخانه جدید کاملاً امن است
   String? _cellValue(dynamic cell) {
     if (cell == null) return null;
     return cell.toString().trim();
