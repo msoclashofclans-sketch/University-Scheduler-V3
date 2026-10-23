@@ -3,6 +3,7 @@ import 'package:path/path.dart';
 import '../models/classroom.dart';
 import '../models/course_record.dart';
 import '../models/attendance_record.dart';
+import '../models/makeup_record.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -19,8 +20,8 @@ class DatabaseService {
 
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'university_scheduler_v4.db');
-    return await openDatabase(path, version: 4, onCreate: _onCreate);
+    final path = join(dbPath, 'university_scheduler_v5.db');
+    return await openDatabase(path, version: 5, onCreate: _onCreate);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -36,6 +37,9 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT, record_key TEXT NOT NULL UNIQUE,
         status TEXT NOT NULL, registered_at TEXT, delay_minutes TEXT, day TEXT, time_slot TEXT,
         course_name TEXT, teacher TEXT, classroom TEXT, group_name TEXT
+    )''');
+    await db.execute('''CREATE TABLE makeup_records (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, record_key TEXT NOT NULL, day TEXT, time_slot TEXT
     )''');
   }
 
@@ -58,7 +62,11 @@ class DatabaseService {
   Future<void> upsertAttendance(AttendanceRecord record) async => (await database).insert('attendance_records', record.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
   Future<List<AttendanceRecord>> getAllAttendance() async => (await (await database).query('attendance_records')).map((e) => AttendanceRecord.fromMap(e)).toList();
 
+  Future<void> insertMakeupRecord(MakeupRecord record) async => (await database).insert('makeup_records', record.toMap());
+  Future<List<MakeupRecord>> getAllMakeupRecords() async => (await (await database).query('makeup_records')).map((e) => MakeupRecord.fromMap(e)).toList();
+  Future<void> clearMakeupRecords() async => (await database).delete('makeup_records');
+
   Future<void> deleteAllData() async {
-    final db = await database; await db.delete('classrooms'); await db.delete('course_records'); await db.delete('attendance_records');
+    final db = await database; await db.delete('classrooms'); await db.delete('course_records'); await db.delete('attendance_records'); await db.delete('makeup_records');
   }
 }
