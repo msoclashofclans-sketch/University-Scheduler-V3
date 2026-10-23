@@ -1,3 +1,4 @@
+import 'makeup_screen.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -54,6 +55,7 @@ class HomeScreen extends StatelessWidget {
                             _menuCard(context, title: 'کلاس‌ها', subtitle: '${provider.totalClassrooms} کلاس', icon: Icons.meeting_room_rounded, gradient: AppConstants.successGradient, onTap: () => Navigator.push(context, PageTransitions.slideFromRight(const ClassScreen()))),
                             _menuCard(context, title: 'اساتید', subtitle: '${provider.totalTeachers} استاد', icon: Icons.person_rounded, gradient: AppConstants.dangerGradient, onTap: () => Navigator.push(context, PageTransitions.slideFromRight(const TeacherScreen()))),
                             _menuCard(context, title: 'حضور و غیاب', subtitle: '${provider.presentCount} حاضر', icon: Icons.fact_check_rounded, gradient: AppConstants.oceanGradient, onTap: () => Navigator.push(context, PageTransitions.slideFromRight(const AttendanceScreen()))),
+                            _menuCard(context, title: 'کلاس‌های جبرانی', subtitle: 'ثبت زمان جدید', icon: Icons.update_rounded, gradient: const LinearGradient(colors: [Colors.pink, Colors.pinkAccent]), onTap: () => Navigator.push(context, PageTransitions.slideFromRight(const MakeupScreen()))),
                             _menuCard(context, title: 'گزارش‌ها', subtitle: 'خروجی Excel', icon: Icons.analytics_rounded, gradient: AppConstants.sunsetGradient, onTap: () => Navigator.push(context, PageTransitions.slideFromRight(const ReportsScreen()))),
                             _menuCard(context, title: 'آمار اساتید', subtitle: 'تعداد دروس', icon: Icons.bar_chart_rounded, gradient: const LinearGradient(colors: [Colors.teal, Colors.green]), onTap: () => Navigator.push(context, PageTransitions.slideFromRight(const TeacherStatsScreen()))),
                             _menuCard(context, title: 'کلاس‌های خالی', subtitle: 'برنامه آزاد', icon: Icons.event_available_rounded, gradient: const LinearGradient(colors: [Colors.orange, Colors.deepOrange]), onTap: () => Navigator.push(context, PageTransitions.slideFromRight(const EmptyClassesScreen()))),
