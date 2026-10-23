@@ -142,7 +142,7 @@ class _LicenseScreenState extends State<LicenseScreen> {
                   controller: _controller,
                   decoration: InputDecoration(
                     labelText: 'کد لایسنس',
-                    hintText: 'مثال: A1B2C3D4-20261023',
+                    hintText: 'کد لایسنس را وارد نمایید',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     prefixIcon: const Icon(Icons.key),
                   ),
