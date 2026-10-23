@@ -21,17 +21,16 @@ void main() async {
 class UniversitySchedulerApp extends StatelessWidget {
   const UniversitySchedulerApp({super.key});
 
-  // 🚨 تابع بررسی اعتبار لایسنس
   Future<bool> _checkLicense() async {
     final prefs = await SharedPreferences.getInstance();
     final expireDateStr = prefs.getString('expire_date');
 
     if (expireDateStr == null) {
-      return false; // اولین بار است، لایسنس ندارد
+      return false; // اولین بار است
     }
 
     final expireDate = DateTime.parse(expireDateStr);
-    return DateTime.now().isBefore(expireDate); // آیا هنوز اعتبار دارد؟
+    return DateTime.now().isBefore(expireDate);
   }
 
   @override
@@ -56,7 +55,6 @@ class UniversitySchedulerApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            // 🚨 بررسی لایسنس قبل از ورود به برنامه
             home: FutureBuilder<bool>(
               future: _checkLicense(),
               builder: (context, snapshot) {
